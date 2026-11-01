@@ -1,0 +1,10 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "Bt server navigation export",
+  "Description": "Exports saved UE 5.7 navigation to the standalone server. No spawn placement is exported.",
+  "EnabledByDefault": true,
+  "CanContainContent": false,
+  "Modules": [{ "Name": "BtNavMeshExport", "Type": "Editor", "LoadingPhase": "PostEngineInit" }]
+}

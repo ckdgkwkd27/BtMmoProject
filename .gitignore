@@ -26,9 +26,34 @@ __pycache__/
 /BtMmoProject/scripts/
 /BtMmoProject/tests/
 
-# Generated Unreal Engine files
-/BtMmoClient/Binaries/
-/BtMmoClient/DerivedDataCache/
-/BtMmoClient/Intermediate/
-/BtMmoClient/Saved/
-/BtMmoClient/*.sln
+# Client: keep project metadata and authored C++ sources only
+/BtMmoClient/*
+!/BtMmoClient/BtMmoClient.uproject
+!/BtMmoClient/Source/
+!/BtMmoClient/Plugins/
+
+# Client runtime sources and Unreal build definitions
+/BtMmoClient/Source/**
+!/BtMmoClient/Source/**/
+!/BtMmoClient/Source/**/*.h
+!/BtMmoClient/Source/**/*.cpp
+!/BtMmoClient/Source/**/*.Build.cs
+!/BtMmoClient/Source/**/*.Target.cs
+
+# Unmodified Unreal template examples and automation tests
+/BtMmoClient/Source/BtMmoClient/Variant_Combat/
+/BtMmoClient/Source/BtMmoClient/Variant_Platforming/
+/BtMmoClient/Source/BtMmoClient/Variant_SideScrolling/
+/BtMmoClient/Source/BtMmoClient/Tests/
+
+# Authored navigation export plugin; exclude its generated outputs
+/BtMmoClient/Plugins/*
+!/BtMmoClient/Plugins/BtNavMeshExport/
+/BtMmoClient/Plugins/BtNavMeshExport/*
+!/BtMmoClient/Plugins/BtNavMeshExport/BtNavMeshExport.uplugin
+!/BtMmoClient/Plugins/BtNavMeshExport/Source/
+/BtMmoClient/Plugins/BtNavMeshExport/Source/**
+!/BtMmoClient/Plugins/BtNavMeshExport/Source/**/
+!/BtMmoClient/Plugins/BtNavMeshExport/Source/**/*.h
+!/BtMmoClient/Plugins/BtNavMeshExport/Source/**/*.cpp
+!/BtMmoClient/Plugins/BtNavMeshExport/Source/**/*.Build.cs

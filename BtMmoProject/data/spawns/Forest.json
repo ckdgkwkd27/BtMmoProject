@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "map": "/Game/Maps/Forest",
+  "spawnerCount": 64,
+  "maxAlive": 10,
+  "spawnRadius": 800,
+  "minSpawnerDistance": 2000,
+  "respawnDelayMs": 5000,
+  "tickMs": 250,
+  "templateId": 1,
+  "maxHp": 100,
+  "seed": 20261023
+}

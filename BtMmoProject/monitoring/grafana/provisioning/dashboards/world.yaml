@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: BtMmo
+    type: file
+    folder: BtMmo
+    options:
+      path: /var/lib/grafana/dashboards

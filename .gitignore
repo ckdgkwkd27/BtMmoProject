@@ -1,0 +1,34 @@
+# Local IDE settings and Python caches
+.vs/
+.idea/
+*.DotSettings.user
+*.vcxproj.user
+__pycache__/
+
+# Markdown documents and local formatting configuration
+*.md
+.clang-format
+
+# Server build outputs, dependencies and local settings
+/BtMmoProject/**/bin/
+/BtMmoProject/**/obj/
+/BtMmoProject/packages/
+/BtMmoProject/**/riderModule.iml
+/BtMmoProject/_ReSharper.Caches/
+/BtMmoProject/**/.deps/
+/BtMmoProject/**/cmake-build-*/
+/BtMmoProject/**/out/
+/BtMmoProject/**/x64/
+/BtMmoProject/**/Win32/
+
+# Server directories excluded from version control
+/BtMmoProject/Build/
+/BtMmoProject/scripts/
+/BtMmoProject/tests/
+
+# Generated Unreal Engine files
+/BtMmoClient/Binaries/
+/BtMmoClient/DerivedDataCache/
+/BtMmoClient/Intermediate/
+/BtMmoClient/Saved/
+/BtMmoClient/*.sln

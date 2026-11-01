@@ -1,0 +1,97 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CC2D95A2-65A2-43AC-9E10-A3F14664BD25}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>NetworkCore</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="..\Build\Cpp.props" />
+  <ItemGroup>
+    <ClInclude Include="include\NetworkCore\BufferReader.h" />
+    <ClInclude Include="include\NetworkCore\BufferWriter.h" />
+    <ClInclude Include="include\NetworkCore\ClientService.h" />
+    <ClInclude Include="include\NetworkCore\CoreRuntime.h" />
+    <ClInclude Include="include\NetworkCore\GlobalQueue.h" />
+    <ClInclude Include="include\NetworkCore\IocpCore.h" />
+    <ClInclude Include="include\NetworkCore\IocpEvent.h" />
+    <ClInclude Include="include\NetworkCore\IocpObject.h" />
+    <ClInclude Include="include\NetworkCore\JobQueue.h" />
+    <ClInclude Include="include\NetworkCore\JobTimer.h" />
+    <ClInclude Include="include\NetworkCore\Listener.h" />
+    <ClInclude Include="include\NetworkCore\LockQueue.h" />
+    <ClInclude Include="include\NetworkCore\NetAddress.h" />
+    <ClInclude Include="include\NetworkCore\Packet.h" />
+    <ClInclude Include="include\NetworkCore\PacketSession.h" />
+    <ClInclude Include="include\NetworkCore\Platform.h" />
+    <ClInclude Include="include\NetworkCore\RecvBuffer.h" />
+    <ClInclude Include="include\NetworkCore\SendBuffer.h" />
+    <ClInclude Include="include\NetworkCore\SendBufferQueue.h" />
+    <ClInclude Include="include\NetworkCore\ServerService.h" />
+    <ClInclude Include="include\NetworkCore\Service.h" />
+    <ClInclude Include="include\NetworkCore\Session.h" />
+    <ClInclude Include="include\NetworkCore\SocketUtils.h" />
+    <ClInclude Include="include\NetworkCore\ThreadManager.h" />
+    <ClInclude Include="include\NetworkCore\TimerHandle.h" />
+    <ClInclude Include="include\NetworkCore\Types.h" />
+    <ClInclude Include="include\NetworkCore\Utf8.h" />
+    <ClCompile Include="src\BufferReader.cpp" />
+    <ClCompile Include="src\BufferWriter.cpp" />
+    <ClCompile Include="src\ClientService.cpp" />
+    <ClCompile Include="src\CoreRuntime.cpp" />
+    <ClCompile Include="src\GlobalQueue.cpp" />
+    <ClCompile Include="src\IocpCore.cpp" />
+    <ClCompile Include="src\IocpEvent.cpp" />
+    <ClCompile Include="src\JobQueue.cpp" />
+    <ClCompile Include="src\JobTimer.cpp" />
+    <ClCompile Include="src\Listener.cpp" />
+    <ClCompile Include="src\NetAddress.cpp" />
+    <ClCompile Include="src\Packet.cpp" />
+    <ClCompile Include="src\PacketSession.cpp" />
+    <ClCompile Include="src\RecvBuffer.cpp" />
+    <ClCompile Include="src\SendBuffer.cpp" />
+    <ClCompile Include="src\SendBufferQueue.cpp" />
+    <ClCompile Include="src\ServerService.cpp" />
+    <ClCompile Include="src\Service.cpp" />
+    <ClCompile Include="src\Session.cpp" />
+    <ClCompile Include="src\SessionIo.cpp" />
+    <ClCompile Include="src\SocketUtils.cpp" />
+    <ClCompile Include="src\ThreadManager.cpp" />
+    <ClCompile Include="src\Utf8.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Shared\Pch.h" />
+    <ClInclude Include="..\Shared\Types.h" />
+    <ClCompile Include="..\Shared\Pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

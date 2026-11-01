@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Win32" />
+    <Platform Name="x64" />
+  </Configurations>
+  <Project Path="BtMmoWorldServer/BtMmoWorldServer.vcxproj" />
+  <Project Path="NetworkCore/NetworkCore.vcxproj" />
+  <Project Path="BtMmoBotClient/BtMmoBotClient.vcxproj" />
+</Solution>

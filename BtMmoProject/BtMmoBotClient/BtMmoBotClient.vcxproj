@@ -1,0 +1,71 @@
+<?xml version='1.0' encoding='utf-8'?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003" DefaultTargets="Build">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{034EBF22-531B-42B8-A1F2-739CC4054B2F}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+    <RootNamespace>BtMmoBotClient</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <PlatformToolset>v145</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Debug'">true</UseDebugLibraries>
+    <UseDebugLibraries Condition="'$(Configuration)'=='Release'">false</UseDebugLibraries>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <Import Project="..\Build\Cpp.props" />
+  <ItemGroup>
+    <ProjectReference Include="..\NetworkCore\NetworkCore.vcxproj">
+      <Project>{CC2D95A2-65A2-43AC-9E10-A3F14664BD25}</Project>
+    </ProjectReference>
+    <ClCompile Include="BotApplication.cpp" />
+    <ClInclude Include="BotApplication.h" />
+    <ClCompile Include="BotClient.cpp" />
+    <ClCompile Include="BotOptions.cpp" />
+    <ClInclude Include="BotOptions.h" />
+    <ClCompile Include="ServerPacketHandler.cpp" />
+    <ClInclude Include="ServerPacketHandler.h" />
+    <ClCompile Include="BotScenario.cpp" />
+    <ClInclude Include="BotScenario.h" />
+    <ClCompile Include="BotSession.cpp" />
+    <ClInclude Include="BotSession.h" />
+    <ClCompile Include="BotStatistics.cpp" />
+    <ClInclude Include="BotStatistics.h" />
+    <ClInclude Include="..\Shared\WorldPacketFactory.h" />
+    <ClInclude Include="..\Shared\WorldProtocol.h" />
+    <ClInclude Include="..\Shared\Console.h" />
+    <ClCompile Include="..\Shared\ConsoleStopHandler.cpp" />
+    <ClInclude Include="..\Shared\ConsoleStopHandler.h" />
+    <ClInclude Include="..\Shared\Options.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Shared\Pch.h" />
+    <ClInclude Include="..\Shared\Types.h" />
+    <ClInclude Include="..\Shared\WorldPackets.h" />
+    <ClInclude Include="..\Shared\WorldPacketHandler.h" />
+    <ClCompile Include="..\Shared\Pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+</Project>

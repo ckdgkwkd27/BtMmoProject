@@ -35,7 +35,7 @@ bool GameWorld::ShowPlayer(uint64 viewerId, uint64 playerId)
 
 	const auto& player = players.at(playerId);
 	SendToPlayer(viewerId, WorldPacketFactory::MakeSendBuffer(
-		NotifyPlayerSpawn{.id = playerId, .movement = playerMoves.at(playerId), .state = playerStates.at(playerId), .hp = static_cast<uint32>(player.hp), .maxHp = 100}));
+	                           NotifyPlayerSpawn{.id = playerId, .movement = playerMoves.at(playerId), .state = playerStates.at(playerId), .hp = static_cast<uint32>(player.hp), .maxHp = WorldPlayer::MAX_HP}));
 	return true;
 }
 
@@ -193,11 +193,21 @@ void GameWorld::AddMonsterVisibility(const Monster& monster)
 void GameWorld::UpdateMonsterVisibility(const MonsterBehaviorSnapshot& info)
 {
 	const uint64 id = info.movement.id;
+	const auto previous = monsterSnapshots.find(id);
+	const bool changedState = previous == monsterSnapshots.end() || previous->second.state != info.state;
+	const auto& move = info.movement;
+	const bool changedMove = previous == monsterSnapshots.end() ||
+	                         std::tie(previous->second.movement.x, previous->second.movement.y, previous->second.movement.z,
+	                                  previous->second.movement.yaw, previous->second.movement.speed) !=
+	                             std::tie(move.x, move.y, move.z, move.yaw, move.speed);
+	if (!changedState && !changedMove)
+	{
+		return;
+	}
+
+	monsterSnapshots.insert_or_assign(id, info);
 	const auto previousTile = monsterTiles.FindTile(id);
 	const bool changedTile = monsterTiles.Update(id, {info.movement.x, info.movement.y, info.movement.z});
-	const auto previousState = monsterStates.find(id);
-	const bool changedState = previousState == monsterStates.end() || previousState->second != info.state;
-	monsterStates[id] = info.state;
 	const auto tile = monsterTiles.FindTile(id);
 	if (!tile)
 	{
@@ -216,6 +226,8 @@ void GameWorld::UpdateMonsterVisibility(const MonsterBehaviorSnapshot& info)
 	}
 
 	const auto statePacket = changedState ? WorldPacketFactory::MakeSendBuffer(info.state) : SendBufferPtr{};
+	// The UE client consumes animation state with a movement sample, including
+	// stationary attacks. Always pair a changed state with the current movement.
 	const auto movePacket = WorldPacketFactory::MakeSendBuffer(info.movement);
 	for (uint64 viewer : playerTiles.FindNearby(*tile))
 	{

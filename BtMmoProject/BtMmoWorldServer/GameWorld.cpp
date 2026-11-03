@@ -9,6 +9,22 @@ static NotifyMonsterHealth MakeMonsterHealth(const Monster& monster)
 	return {monster.GetId(), static_cast<uint32>(monster.GetHp()), static_cast<uint32>(monster.GetMaxHp())};
 }
 
+static bool IsSameMove(const RequestPlayerMove& a, const RequestPlayerMove& b)
+{
+	return std::tie(a.x, a.y, a.z, a.yaw, a.velocityX, a.velocityY, a.velocityZ, a.falling) == std::tie(b.x, b.y, b.z, b.yaw, b.velocityX, b.velocityY, b.velocityZ, b.falling);
+}
+
+static constexpr auto PLAYER_MOVE_WINDOW = std::chrono::milliseconds(500);
+
+static bool IsPlausiblePlayerMove(RequestPlayerPosition from, const RequestPlayerMove& to, MonsterBehaviorSystem::Clock::duration elapsed)
+{
+	const double seconds = std::clamp(std::chrono::duration<double>(elapsed).count(), 0.0, std::chrono::duration<double>(PLAYER_MOVE_WINDOW).count());
+	const double maxDistance = 1000 * seconds + 250;
+	const double maxHeight = 6000 * seconds + 500;
+	const double dx = to.x - from.x, dy = to.y - from.y;
+	return dx * dx + dy * dy <= maxDistance * maxDistance && std::abs(to.z - from.z) <= maxHeight;
+}
+
 GameWorld::GameWorld(CoreRuntime& runtime, uint32 tileSize, std::shared_ptr<const NavigationMesh> navigation, std::shared_ptr<WorldMetrics> _metrics)
     : JobQueue(runtime.GetGlobalQueue(), runtime.GetJobTimer()), metrics(std::move(_metrics)), playerNavigation(std::move(navigation)), playerTiles(tileSize), monsterTiles(tileSize), monsterDespawner(monsterSpawner)
 {
@@ -22,7 +38,7 @@ GameWorld::GameWorld(CoreRuntime& runtime, uint32 tileSize, std::shared_ptr<cons
 			monsterBehaviorSystem->Remove(id);
 		}
 
-		monsterStates.erase(id);
+		monsterSnapshots.erase(id);
 		RemoveMonsterVisibility(id);
 	});
 }
@@ -195,7 +211,9 @@ void GameWorld::ApplyPlayerMove(uint64 id, RequestPlayerMove movement)
 
 	auto [entry, inserted] = players.try_emplace(id);
 	auto& player = entry->second;
+	const auto now = MonsterBehaviorSystem::Clock::now();
 	const auto previous = playerMoves.find(id);
+	bool accepted = true;
 	if (player.hp <= 0)
 	{
 		movement = previous != playerMoves.end() ? previous->second : RequestPlayerMove{player.position.x, player.position.y, player.position.z};
@@ -205,8 +223,11 @@ void GameWorld::ApplyPlayerMove(uint64 id, RequestPlayerMove movement)
 	else if (previous != playerMoves.end())
 	{
 		const auto& before = previous->second;
-		if (!playerCells.CanMove(id, {before.x, before.y, before.z}, {movement.x, movement.y, movement.z}))
+		if (!IsPlausiblePlayerMove({before.x, before.y, before.z}, movement, now - player.lastSeen) ||
+		    !IsPlausiblePlayerMove(player.moveCheckPosition, movement, now - player.moveCheckTime) ||
+		    !playerCells.CanMove(id, {before.x, before.y, before.z}, {movement.x, movement.y, movement.z}))
 		{
+			accepted = false;
 			// First version stops the rejected step; facing may still change.
 			movement.x = before.x;
 			movement.y = before.y;
@@ -216,8 +237,14 @@ void GameWorld::ApplyPlayerMove(uint64 id, RequestPlayerMove movement)
 		}
 	}
 
+	if (inserted || (accepted && now - player.moveCheckTime >= PLAYER_MOVE_WINDOW))
+	{
+		player.moveCheckPosition = {movement.x, movement.y, movement.z};
+		player.moveCheckTime = now;
+	}
+
 	player.position = {static_cast<float>(movement.x), static_cast<float>(movement.y), static_cast<float>(movement.z)};
-	player.lastSeen = MonsterBehaviorSystem::Clock::now();
+	player.lastSeen = now;
 	if (player.hp > 0)
 	{
 		playerCells.Update(id, {movement.x, movement.y, movement.z});
@@ -227,15 +254,19 @@ void GameWorld::ApplyPlayerMove(uint64 id, RequestPlayerMove movement)
 		playerCells.Remove(id);
 	}
 
-	if (inserted && !session->Send(WorldPacketFactory::MakeSendBuffer(NotifyPlayerHealth{100, 100})))
+	if (inserted && !session->Send(WorldPacketFactory::MakeSendBuffer(NotifyPlayerHealth{WorldPlayer::MAX_HP, WorldPlayer::MAX_HP})))
 	{
 		session->Disconnect();
 		return;
 	}
 
+	const bool changed = previous == playerMoves.end() || !IsSameMove(previous->second, movement);
 	playerMoves[id] = movement;
 	playerStates.try_emplace(id);
-	UpdatePlayerVisibility(id);
+	if (changed)
+	{
+		UpdatePlayerVisibility(id);
+	}
 	const bool corrected = requested.x != movement.x || requested.y != movement.y || requested.z != movement.z ||
 	                       requested.velocityX != movement.velocityX || requested.velocityY != movement.velocityY ||
 	                       requested.velocityZ != movement.velocityZ || requested.falling != movement.falling;
@@ -262,7 +293,7 @@ void GameWorld::UpdatePlayerState(uint64 id, RequestPlayerState state)
 			return;
 		}
 
-		const auto& player = self->players.at(id);
+		auto& player = self->players.at(id);
 		if (player.hp <= 0)
 		{
 			return;
@@ -273,8 +304,13 @@ void GameWorld::UpdatePlayerState(uint64 id, RequestPlayerState state)
 			return;
 		}
 
+		if (previous->second.attackIndex != 0 && state.attackIndex == 0)
+		{
+			player.attackEnded = MonsterBehaviorSystem::Clock::now();
+		}
+
 		previous->second = state;
-		self->BroadcastPlayer(id, WorldPacketFactory::MakeSendBuffer(NotifyPlayerState{id, state, static_cast<uint32>(player.hp), 100}));
+		self->BroadcastPlayer(id, WorldPacketFactory::MakeSendBuffer(NotifyPlayerState{id, state, static_cast<uint32>(player.hp), WorldPlayer::MAX_HP}));
 	});
 }
 
@@ -307,6 +343,14 @@ void GameWorld::ReportMeleeHit(uint64 playerId, RequestMeleeHit hit)
 		const auto now = std::chrono::steady_clock::now();
 		const auto& settings = self->meleeSettings;
 		if (!session || !session->IsConnected() || player->second.hp <= 0 || now - player->second.lastSeen > settings.positionTimeout)
+		{
+			return;
+		}
+
+		const auto state = self->playerStates.find(playerId);
+		if (state == self->playerStates.end() ||
+		    (state->second.attackIndex == 0 && (player->second.attackEnded == MonsterBehaviorSystem::TimePoint{} ||
+		                                        now - player->second.attackEnded > settings.stateGrace)))
 		{
 			return;
 		}
@@ -475,7 +519,7 @@ std::future<std::expected<void, std::string>> GameWorld::StartMonsterSpawning(st
 						world->BroadcastPlayer(id, WorldPacketFactory::MakeSendBuffer(NotifyPlayerMove{id, movement}));
 					}
 
-					world->BroadcastPlayer(id, WorldPacketFactory::MakeSendBuffer(NotifyPlayerState{id, state->second, static_cast<uint32>(hp), 100}));
+					world->BroadcastPlayer(id, WorldPacketFactory::MakeSendBuffer(NotifyPlayerState{id, state->second, static_cast<uint32>(hp), WorldPlayer::MAX_HP}));
 				}
 
 				const auto found = world->sessions.find(id);
@@ -485,13 +529,14 @@ std::future<std::expected<void, std::string>> GameWorld::StartMonsterSpawning(st
 				}
 
 				if (const auto session = found->second.lock(); session && session->IsConnected() &&
-				                                               !session->Send(WorldPacketFactory::MakeSendBuffer(NotifyPlayerHealth{static_cast<uint32>(hp), 100})))
+				                                               !session->Send(WorldPacketFactory::MakeSendBuffer(NotifyPlayerHealth{static_cast<uint32>(hp), WorldPlayer::MAX_HP})))
 				{
 					session->Disconnect();
 				}
 			}, config.seed);
 
 			self->ScheduleMonsterTick();
+			self->nextBehaviorTick = MonsterBehaviorSystem::Clock::now() + std::chrono::milliseconds(WorldProtocol::MONSTER_TICK_MS);
 			self->ScheduleBehaviorTick();
 		}
 
@@ -503,12 +548,21 @@ std::future<std::expected<void, std::string>> GameWorld::StartMonsterSpawning(st
 
 void GameWorld::ScheduleBehaviorTick()
 {
+	const auto now = MonsterBehaviorSystem::Clock::now();
+	const auto interval = std::chrono::milliseconds(WorldProtocol::MONSTER_TICK_MS);
+	if (nextBehaviorTick <= now)
+	{
+		nextBehaviorTick += interval * ((now - nextBehaviorTick) / interval + 1);
+	}
+
+	const auto delay = std::chrono::ceil<std::chrono::milliseconds>(nextBehaviorTick - now).count();
 	std::weak_ptr weak = GetWorldPtr();
-	behaviorTick = DoTimer(WorldProtocol::MONSTER_TICK_MS, [weak]
+	behaviorTick = DoTimer(static_cast<uint64>(delay), [weak]
 	{
 		if (auto self = weak.lock(); self && self->monsterBehaviorSystem)
 		{
 			const auto start = MonsterBehaviorSystem::Clock::now();
+			self->nextBehaviorTick += std::chrono::milliseconds(WorldProtocol::MONSTER_TICK_MS);
 			self->monsterBehaviorSystem->Tick(start);
 			if (self->metrics)
 			{
@@ -544,7 +598,7 @@ void GameWorld::StopMonsterSpawning()
 		self->monsterTick.Cancel();
 		self->behaviorTick.Cancel();
 		self->monsterBehaviorSystem.reset();
-		self->monsterStates.clear();
+		self->monsterSnapshots.clear();
 		if (self->monsterSpawnSystem)
 		{
 			self->monsterSpawnSystem->Stop();

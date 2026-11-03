@@ -19,5 +19,5 @@ private:
 	std::shared_ptr<GameWorld> world;
 	ServerServicePtr service;
 	std::shared_ptr<WorldMetrics> metrics;
-	uint64 nextSessionId{1};
+	std::atomic<uint64> nextSessionId{1};
 };

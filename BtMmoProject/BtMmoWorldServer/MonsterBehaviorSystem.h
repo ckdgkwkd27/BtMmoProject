@@ -24,9 +24,13 @@ struct MonsterBehaviorSettings
 
 struct WorldPlayer
 {
+	static constexpr int MAX_HP = 100;
 	NavPoint position{};
-	int hp{100};
+	int hp{MAX_HP};
 	std::chrono::steady_clock::time_point lastSeen{};
+	std::chrono::steady_clock::time_point attackEnded{};
+	RequestPlayerPosition moveCheckPosition{};
+	std::chrono::steady_clock::time_point moveCheckTime{};
 };
 
 struct MonsterBehaviorSnapshot

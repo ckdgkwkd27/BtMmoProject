@@ -32,11 +32,7 @@ void MonsterBehaviorSystem::Tick(TimePoint now)
 {
 	const float delta = previousTick == TimePoint{} ? 0.1f : std::clamp(std::chrono::duration<float>(now - previousTick).count(), 0.0f, 0.2f);
 	previousTick = now;
-	auto snapshot = monsters.Snapshot();
-	std::ranges::sort(snapshot, [](const auto& a, const auto& b)
-	{
-		return a->GetId() < b->GetId();
-	});
+	const auto snapshot = monsters.Snapshot();
 
 	crowdPositions.clear();
 	crowdCells.clear();

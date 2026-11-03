@@ -52,7 +52,7 @@ int ServerApplication::Run()
 	    NetAddress(options.bindAddress, options.port), runtime,
 	    [this]
 	{
-		return std::make_shared<WorldSession>(runtime, world, nextSessionId++, options.session, metrics);
+		return std::make_shared<WorldSession>(runtime, world, nextSessionId.fetch_add(1, std::memory_order_relaxed), options.session, metrics);
 	},
 	    options.maxClients);
 	std::unique_ptr<prometheus::Exposer> exposer;

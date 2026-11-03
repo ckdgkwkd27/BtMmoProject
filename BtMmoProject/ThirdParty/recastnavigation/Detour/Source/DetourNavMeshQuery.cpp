@@ -223,8 +223,7 @@ dtStatus dtNavMeshQuery::init(const dtNavMesh* nav, const int maxNodes)
 	return DT_SUCCESS;
 }
 
-dtStatus dtNavMeshQuery::findRandomPoint(const dtQueryFilter* filter, float (*frand)(),
-										 dtPolyRef* randomRef, float* randomPt) const
+dtStatus dtNavMeshQuery::findRandomPoint(const dtQueryFilter* filter, float (*frand)(), dtPolyRef* randomRef, float* randomPt) const
 {
 	dtAssert(m_nav);
 

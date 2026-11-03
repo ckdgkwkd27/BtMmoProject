@@ -16,6 +16,7 @@ struct PlayerMeleeSettings
 	int damage{50};
 	std::chrono::milliseconds cooldown{400};
 	std::chrono::milliseconds hitWindow{600};
+	std::chrono::milliseconds stateGrace{400};
 	std::chrono::seconds positionTimeout{2};
 	std::size_t maxTargets{64};
 };
@@ -87,11 +88,12 @@ private:
 	std::unordered_map<uint64, PlayerView> playerViews;
 	std::unordered_map<uint64, RequestPlayerState> playerStates;
 	std::unordered_map<uint64, RequestPlayerMove> playerMoves;
-	std::unordered_map<uint64, NotifyMonsterState> monsterStates;
+	std::unordered_map<uint64, MonsterBehaviorSnapshot> monsterSnapshots;
 	MonsterSpawner monsterSpawner;
 	MonsterDespawner monsterDespawner;
 	std::unique_ptr<MonsterSpawnSystem> monsterSpawnSystem;
 	std::unique_ptr<MonsterBehaviorSystem> monsterBehaviorSystem;
 	TimerHandle monsterTick;
 	TimerHandle behaviorTick;
+	MonsterBehaviorSystem::TimePoint nextBehaviorTick{};
 };

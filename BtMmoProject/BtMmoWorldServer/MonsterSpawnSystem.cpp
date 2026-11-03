@@ -28,12 +28,13 @@ std::expected<void, std::string> MonsterSpawnSystem::Start(const MonsterSpawnCon
 		return std::unexpected("Spawn config map does not match the loaded NavMesh");
 	}
 
+	constexpr unsigned MAX_SPAWNER_PLACEMENT_ATTEMPTS = 512;
 	std::mt19937 _random(_config.seed);
 	std::vector<SpawnPoint> _points;
 	for (unsigned i = 0; i < _config.spawnerCount; ++i)
 	{
 		bool placed = false;
-		for (unsigned attempt = 0; attempt < 512; ++attempt)
+		for (unsigned attempt = 0; attempt < MAX_SPAWNER_PLACEMENT_ATTEMPTS; ++attempt)
 		{
 			const auto candidate = navigation->RandomPoint(_random);
 			if (!candidate)
